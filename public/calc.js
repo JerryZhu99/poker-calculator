@@ -162,16 +162,15 @@ cards.forEach(function(elem){
     cs.push(elem.num==nums[0]?14:nums.indexOf(elem.num)+1);
     ss.push(Math.pow(2,suits.indexOf(elem.suit)));
 });
+console.log(JSON.stringify(ss))
   var v, i, o, s = 1<<cs[0]|1<<cs[1]|1<<cs[2]|1<<cs[3]|1<<cs[4];
   for (i=-1, v=o=0; i<5; i++, o=Math.pow(2,cs[i]*4)) {v += o*((v/o&15)+1);}
   v = v % 15 - ((s/(s&-s) == 31) || (s == 0x403c) ? 3 : 1);
   v -= (ss[0] == (ss[1]|ss[2]|ss[3]|ss[4])) * ((s == 0x7c00) ? -5 : 1);
 
-
 cs.sort(function(a,b){
     return a-b;
 });
-
   var n = (((((cs[4])*100+cs[3])*100+cs[2])*100+cs[1])*100)+cs[0];
  // console.log(JSON.stringify(cs));
  // console.log(n);
@@ -246,7 +245,7 @@ calcNewProbabilities();
 
 
 x.domain(data.map(function(d) { return d.hand; }));
-y.domain([0, d3.max(data, function(d) { return d.probability; })]);
+y.domain([0, 1]);
 
 g.append("g")
 .attr("class", "axis axis--x")
@@ -277,7 +276,7 @@ var t = d3.transition()
     .ease(d3.easeSin);
 function updateData(){
     x.domain(data.map(function(d) { return d.hand; }));
-    y.domain([0, d3.max(data, function(d) { return d.probability; })]);
+    y.domain([0, 1]);
 
     g.select(".axis--x")
     .attr("class", "axis axis--x")
