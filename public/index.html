@@ -22,33 +22,48 @@
         </div>
     </nav>
     <div class="container">
-        <div class="col-xs-12">
-            <h1>Poker Calc</h1>
+        <h1>Poker Calc</h1>
+        <div class="col-xs-12 col-md-9">
             <div class="cards"></div>
-            <h2>Your Cards</h2>
-            <div class="player-cards">
-
-            </div>
-            <h2>Table Cards</h2>
-            <div class="table-cards">
-
-            </div>
-            <div class="">
-                <svg class="chart" width="1110" height="500"
-      viewBox="0 0 1110 500"
-      preserveAspectRatio="xMidYMid meet">
-
-                </svg>
-            </div>
-
-            <div class="overall">
-
-            </div>
         </div>
+        <div class="col-xs-12 col-md-3">
+            <div class="row">
+                <div class="col-xs-6 col-md-12">
+                    <h3>Your Cards</h3>
+                    <div class="player-cards">
 
+                    </div>
+                </div>
+                <div class="col-xs-6 col-md-12">
+                    <h3>Table Cards</h3>
+                    <div class="table-cards">
+
+                    </div>
+                </div>
+                <div class="col-xs-12">
+                    <p>Sample size: <span id="sample"></span></p><button class="btn btn-default" type="button" name="button" onclick="calcProbabilities()">+2000</button>
+                </div>
+            </div>
+
+        </div>
+        <div class="svg-container" style="margin-top:10px">
+            <svg class="svg-content-responsive overall"
+            viewBox="0 0 1110 20"
+            preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="svg-container">
+            <svg class="svg-content-responsive chart"
+            viewBox="0 0 1110 400"
+            preserveAspectRatio="xMidYMid meet">
+
+        </svg>
     </div>
 
-    <script src="calc.js" charset="utf-8"></script>
+
+
+</div>
+
+<script src="calc.js" charset="utf-8"></script>
 
 </body>
 </html>

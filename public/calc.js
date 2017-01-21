@@ -42,14 +42,15 @@ var opponentResults = [0,0,0,0,0,0,0,0,0,0];
 var wins=0;
 var losses=0;
 var ties=0;
-
+var total=0;
 var carddiv = d3.select(".cards")
 var button = carddiv.selectAll("button")
 .data(deck)
 .enter()
 .append("button")
 .attr("class","card-button")
-.attr("onclick",function(d){return "cardSelected('"+deck.indexOf(d)+"')"});
+.attr("onclick",function(d){return "cardSelected('"+deck.indexOf(d)+"')"})
+.attr("data",function(d){return ""+deck.indexOf(d)+""});
 button.append("img")
 .attr("src",function(d){return "images/"+d.num+"_of_"+d.suit+".png"})
 .attr("class","card");
@@ -57,11 +58,14 @@ carddiv.append("br");
 
 function cardSelected(index){
     var card = deck[index];
-    console.log(card.num+","+card.suit);
+
     if(player.length<2){
+        d3.select("button[data='"+index+"']")
+        .classed("selected",true)
+        .attr("disabled",true);
         d3.select(".player-cards")
         .append("button")
-        .attr("class","card-button")
+        .attr("class","card-button-lg")
         .attr("onclick", "cardPlayer('"+card.num+"','"+card.suit+"')")
         .attr("data",card.num+","+card.suit)
         .append("img")
@@ -69,9 +73,12 @@ function cardSelected(index){
         .attr("class","card");
         player.push(card);
     }else if(table.length<5){
+        d3.select("button[data='"+index+"']")
+        .classed("selected",true)
+        .attr("disabled",true);
         d3.select(".table-cards")
         .append("button")
-        .attr("class","card-button")
+        .attr("class","card-button-lg")
         .attr("onclick", "cardTable('"+card.num+"','"+card.suit+"')")
         .attr("data",card.num+","+card.suit)
         .append("img")
@@ -81,22 +88,33 @@ function cardSelected(index){
     }else{
         return;
     }
-    calcProbabilities();
+    calcNewProbabilities();
 }
 function cardPlayer(num,suit){
     player.splice(player.indexOf(new Card(num,suit)));
+    var index = suits.indexOf(suit)*13+nums.indexOf(num);
+    d3.select("button[data='"+index+"']")
+    .classed("selected",false)
+    .attr("disabled",null);
     d3.select(".player-cards").select("button[data='"+num+","+suit+"']").remove();
-    calcProbabilities();
+    calcNewProbabilities();
 }
 function cardTable(num, suit){
     table.splice(table.indexOf(new Card(num,suit)));
+    var index = suits.indexOf(suit)*13+nums.indexOf(num);
+    d3.select("button[data='"+index+"']")
+    .classed("selected",false)
+    .attr("disabled",null);
     d3.select(".table-cards").select("button[data='"+num+","+suit+"']").remove();
-    calcProbabilities();
+    calcNewProbabilities();
 }
 
-function calcProbabilities(){
+function calcNewProbabilities(){
     resetResults();
-    for(var i=0;i<1000;i++){
+    calcProbabilities();
+}
+function calcProbabilities(){
+    for(var i=0;i<2000;i++){
         reset();
         var p1 = draw(player[0]);
         var p2 = draw(player[1]);
@@ -126,8 +144,8 @@ function calcProbabilities(){
             }
         }
     }
-    console.log(wins+"/"+losses+"/"+ties);
-    var total = wins+losses+ties;
+    total = wins+losses+ties;
+    d3.select("#sample").text(total);
     data = [];
     orderedHands.forEach(function(elem){
         data.push({hand:elem,probability:playerResults[orderedHands.indexOf(elem)]/total,opp:0});
@@ -189,12 +207,33 @@ function rankPokerHands(cards,debug){
     return {hand:bestHand,val:bestVal}
 }
 
+var line = d3.select(".overall");
+var xline = d3.scaleLinear().rangeRound([0, 1100]);
+xline.domain([0,1])
+line.append("rect")
+.attr("x","0")
+.attr("y","0")
+.attr("width",xline(1))
+.attr("height",50)
+.attr("style","fill:black");
+line.append("rect")
+.attr("x",xline(1))
+.attr("y",0)
+.attr("width",xline(9))
+.attr("height",50)
+.attr("style","fill:red");
+line.append("rect")
+.attr("x",xline(1))
+.attr("y",0)
+.attr("width",xline(9))
+.attr("height",50)
+.attr("style","fill:red");
 
 
 var svg = d3.select(".chart"),
 margin = {top: 20, right: 20, bottom: 30, left: 40},
-width = +svg.attr("width") - margin.left - margin.right,
-height = +svg.attr("height") - margin.top - margin.bottom;
+width = +1100 - margin.left - margin.right,
+height = +400 - margin.top - margin.bottom;
 
 var x = d3.scaleBand().rangeRound([0, width]).padding(0.5),
 y = d3.scaleLinear().rangeRound([height, 0]);
@@ -203,7 +242,7 @@ var g = svg.append("g")
 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var data = [{hand:"High Card",probability:0.07,opp:0},{hand:"High Card",probability:0.28,opp:1},{hand:"One Pair",probability:0.60,opp:0},{hand:"Two Pairs",probability:0.30,opp:0}];
-
+calcNewProbabilities();
 
 
 x.domain(data.map(function(d) { return d.hand; }));
@@ -233,7 +272,9 @@ g.selectAll(".bar")
 .attr("width", x.bandwidth()/2)
 .attr("height", function(d) { return height - y(d.probability); })
 .attr("fill", function(d) { return d.opp?"red":"black"});
-
+var t = d3.transition()
+    .duration(1000)
+    .ease(d3.easeSin);
 function updateData(){
     x.domain(data.map(function(d) { return d.hand; }));
     y.domain([0, d3.max(data, function(d) { return d.probability; })]);
@@ -249,14 +290,14 @@ function updateData(){
 
     var bars = g.selectAll(".bar")
     .data(data);
-    bars.attr("x", function(d) { return x(d.hand)+d.opp*(x.bandwidth()/2); })
+    bars.transition(t).attr("x", function(d) { return x(d.hand)+d.opp*(x.bandwidth()/2); })
     .attr("y", function(d) { return y(d.probability); })
     .attr("width", x.bandwidth()/2)
     .attr("height", function(d) { return height - y(d.probability); })
     .attr("fill", function(d) { return d.opp?"red":"black"});
     bars.enter().append("rect")
     .attr("class", "bar")
-    .merge(bars)
+    .merge(bars).transition(t)
 
     .attr("x", function(d) { return x(d.hand)+d.opp*(x.bandwidth()/2); })
     .attr("y", function(d) { return y(d.probability); })
@@ -264,6 +305,24 @@ function updateData(){
     .attr("height", function(d) { return height - y(d.probability); })
     .attr("fill", function(d) { return d.opp?"red":"black"});
 
-    bars.exit().remove();
+    bars.exit().transition(t).attr("height",0).remove();
 
+    line.select("rect:nth-child(1)").transition(t)
+    .attr("x","0")
+    .attr("y","0")
+    .attr("width",xline(wins/total))
+    .attr("height",20)
+    .attr("style","fill:black");
+    line.select("rect:nth-child(2)").transition(t)
+    .attr("x",xline(wins/total))
+    .attr("y",0)
+    .attr("width",xline(ties/total))
+    .attr("height",20)
+    .attr("style","fill:grey");
+    line.select("rect:nth-child(3)").transition(t)
+    .attr("x",xline((wins+ties)/total))
+    .attr("y",0)
+    .attr("width",xline(losses/total))
+    .attr("height",20)
+    .attr("style","fill:red");
 }
