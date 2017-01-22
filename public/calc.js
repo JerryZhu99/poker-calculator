@@ -162,7 +162,6 @@ cards.forEach(function(elem){
     cs.push(elem.num==nums[0]?14:nums.indexOf(elem.num)+1);
     ss.push(Math.pow(2,suits.indexOf(elem.suit)));
 });
-console.log(JSON.stringify(ss))
   var v, i, o, s = 1<<cs[0]|1<<cs[1]|1<<cs[2]|1<<cs[3]|1<<cs[4];
   for (i=-1, v=o=0; i<5; i++, o=Math.pow(2,cs[i]*4)) {v += o*((v/o&15)+1);}
   v = v % 15 - ((s/(s&-s) == 31) || (s == 0x403c) ? 3 : 1);
